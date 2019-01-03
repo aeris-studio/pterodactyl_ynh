@@ -164,7 +164,7 @@ ynh_setup_source "$final_path"
 #==============================================
 # Install Pterodactyl
 #==============================================
-init_composer
+init_composer "$final_path"
 pushd $final_path
 chmod -R 755 storage/* bootstrap/cache
 php artisan key:generate --force
