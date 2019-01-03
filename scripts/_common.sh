@@ -98,9 +98,9 @@ init_composer() {
     || ynh_die "Unable to install Composer"
 
   # update dependencies to create composer.lock
-  exec_composer "$DESTDIR" install  --no-dev --prefer-dist --no-scripts \
+  exec_composer "$DESTDIR" install --no-dev --optimize-autoloader \
     || ynh_die "Unable to update firefly-iii core dependencies"
-}
+    
 
 sudo_path () {
 	sudo env "PATH=$PATH" $@
