@@ -89,18 +89,17 @@ ynh_app_setting_set $app port $port
 #==============================================
 
 ## Install the PHP 7.2 repo for debian
-ynh_package_install ca-certificates apt-transport-https
-wget -q https://packages.sury.org/php/apt.gpg -O- | apt-key add -
-echo "deb https://packages.sury.org/php/ stretch main" | tee /etc/apt/sources.list.d/php.list
+#ynh_package_install ca-certificates apt-transport-https
+#wget -q https://packages.sury.org/php/apt.gpg -O- | apt-key add -
+#echo "deb https://packages.sury.org/php/ stretch main" | tee /etc/apt/sources.list.d/php.list
 
 ## Get apt updates
 ynh_package_update
-ynh_package_install libargon2-1 libsodium23 libzip5 memcached php-igbinary php-memcached php-msgpack php-xdebug php7.2 php7.2-bcmath php7.2-cli php7.2-common php7.2-curl php7.2-fpm php7.2-gd php7.2-json php7.2-mbstring php7.2-mysql php7.2-opcache php7.2-readline php7.2-xml php7.2-zip
-
+ynh_package_install libargon2-1 libsodium23 libzip5 memcached php-igbinary php-memcached php-msgpack php-xdebug php7.0 php7.0-bcmath php7.0-cli php7.0-common php7.0-curl php7.0-fpm php7.0-gd php7.0-json php7.0-mbstring php7.0-mysql php7.0-opcache php7.0-readline php7.0-xml php7.0-zip
 
 ## Start php7
-systemctl enable php7.2-fpm
-systemctl start php7.2-fpm
+systemctl enable php7.0-fpm
+systemctl start php7.0-fpm
 
 #=================================================
 # CREATE A MYSQL DATABASE
