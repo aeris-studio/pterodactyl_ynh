@@ -115,7 +115,6 @@ ynh_install_app_dependencies $pkg_dependencies
 
 ### CONFIGURING PHP
 ynh_install_php --phpversion=7.3 --package=php7.3-cli php7.3-gd php7.3-mysql php7.3-pdo php7.3-mbstring php7.3-tokenizer php7.3-bcmath php7.3-xml php7.3-fpm php7.3-curl php7.3-zip
-ynh_add_fpm_config --phpversion=7.3
 
 #=================================================
 # CREATE A MYSQL DATABASE
@@ -184,13 +183,46 @@ ynh_script_progression --message="Configuring php-fpm..." --time --weight=1
 ###		- And the section "PHP-FPM CONFIGURATION" in the upgrade script
 
 # Create a dedicated php-fpm config
-ynh_add_fpm_config
+ynh_add_fpm_config --phpversion=7.3
 
 #=================================================
 # SPECIFIC SETUP
 #=================================================
-# ...
+# create a user
+email=$(ynh_user_get_info $admin 'mail')
+
+# setup application config
+cp -a ../conf/.env.example $final_path/.env
+
 #=================================================
+# MODIFY A CONFIG FILE
+#=================================================
+
+#ynh_replace_string "random_key" "$random_key" "$final_path/.env"
+ynh_replace_string "yunouser"   "$db_name"    "$final_path/.env"
+ynh_replace_string "yunopass"   "$db_pwd"     "$final_path/.env"
+ynh_replace_string "yunobase"   "$db_name"    "$final_path/.env"
+ynh_replace_string "yunomail"   "$email"      "$final_path/.env"
+ynh_replace_string "yunodomain" "$domain"     "$final_path/.env"
+
+#==============================================
+# INSTALL Composer
+#==============================================
+
+ynh_install_composer --phpversion=7.3 --workdir=$final_path
+
+#==============================================
+# Install Pterodactyl
+#==============================================
+pushd $final_path
+chmod -R 755 storage/* bootstrap/cache
+php artisan key:generate --force
+php artisan migrate --force
+php artisan db:seed --force
+php artisan p:user:make --name-first $admin --name-last $admin --username $admin --email $email --password $password --admin 1
+php artisan p:environment:setup --author=$email --url=https://$domain --timezone=America/New_York --cache=redis --session=database --queue=redis --disable-settings-ui --redis-host=127.0.0.1 --redis-pass= --redis-port=6379
+php artisan migrate --seed --force
+popd
 
 #=================================================
 # SETUP SYSTEMD
@@ -211,15 +243,11 @@ ynh_script_progression --message="Configuring a systemd service..." --time --wei
 # Create a dedicated systemd config
 ynh_add_systemd_config
 
+#==============================================
+# CRON SETUP
+#==============================================
 
-#=================================================
-# MODIFY A CONFIG FILE
-#=================================================
-
-### `ynh_replace_string` is used to replace a string in a file.
-### (It's compatible with sed regular expressions syntax)
-
-ynh_replace_string --match_string="match_string" --replace_string="replace_string" --target_file="$final_path/CONFIG_FILE"
+crontab -l | { cat; echo "* * * * * php /var/www/pterodactyl/artisan schedule:run" ; } | crontab -
 
 #=================================================
 # STORE THE CONFIG FILE CHECKSUM
