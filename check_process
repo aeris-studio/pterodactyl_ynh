@@ -9,6 +9,7 @@
 		path="/"	(PATH)	
 		is_public=1	(PUBLIC|public=1|private=0)
 		password="PterodactApp123!?"
+                admin="pterodadmin"
 #		nextclouddomain="domain.tld"
 		port="9980"	(PORT)
 	; Checks
