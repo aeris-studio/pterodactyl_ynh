@@ -113,6 +113,10 @@ ynh_script_progression --message="Installing dependencies..." --time --weight=1
 
 ynh_install_app_dependencies $pkg_dependencies
 
+### CONFIGURING PHP
+ynh_install_php --phpversion=7.3 --package=php7.3-cli php7.3-gd php7.3-mysql php7.3-pdo php7.3-mbstring php7.3-tokenizer php7.3-bcmath php7.3-xml php7.3-fpm php7.3-curl php7.3-zip
+ynh_add_fpm_config --phpversion=7.3
+
 #=================================================
 # CREATE A MYSQL DATABASE
 #=================================================
