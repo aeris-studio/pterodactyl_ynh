@@ -14,6 +14,104 @@ pkg_dependencies="software-properties-common dirmngr"
 #=================================================
 # EXPERIMENTAL HELPERS
 #=================================================
+# Add an extra repository correctly, pin it and get the key.
+#
+# [internal]
+#
+# usage: ynh_install_extra_repo --repo="repo" [--key=key_url] [--priority=priority_value] [--name=name] [--append]
+# | arg: -r, --repo - Complete url of the extra repository.
+# | arg: -k, --key - url to get the public key.
+# | arg: -p, --priority - Priority for the pin
+# | arg: -n, --name - Name for the files for this repo, $app as default value.
+# | arg: -a, --append - Do not overwrite existing files.
+ynh_install_extra_repo () {
+	# Declare an array to define the options of this helper.
+	local legacy_args=rkpna
+	declare -Ar args_array=( [r]=repo= [k]=key= [p]=priority= [n]=name= [a]=append )
+	local repo
+	local key
+	local priority
+	local name
+	local append
+	# Manage arguments with getopts
+	ynh_handle_getopts_args "$@"
+	name="${name:-$app}"
+	append=${append:-0}
+	key=${key:-0}
+	priority=${priority:-}
+
+	if [ $append -eq 1 ]
+	then
+		append="--append"
+		wget_append="tee -a"
+	else
+		append=""
+		wget_append="tee"
+	fi
+
+	# Split the repository into uri, suite and components.
+	# Remove "deb " at the beginning of the repo.
+	repo="${repo#deb }"
+
+	# Get the uri
+	local uri="$(echo "$repo" | awk '{ print $1 }')"
+
+	# Get the suite
+	local suite="$(echo "$repo" | awk '{ print $2 }')"
+
+	# Get the components
+	local component="${repo##$uri $suite }"
+
+	# Add the repository into sources.list.d
+	ynh_add_repo --uri="$uri" --suite="$suite" --component="$component" --name="$name" $append
+
+	# Pin the new repo with the default priority, so it won't be used for upgrades.
+	# Build $pin from the uri without http and any sub path
+	local pin="${uri#*://}"
+	pin="${pin%%/*}"
+	# Set a priority only if asked
+	if [ -n "$priority" ]
+	then
+		priority="--priority=$priority"
+	fi
+	ynh_pin_repo --package="*" --pin="origin \"$pin\"" $priority --name="$name" $append
+
+	# Get the public key for the repo
+	if [ -n "$key" ]
+	then
+		mkdir -p "/etc/apt/trusted.gpg.d"
+		wget -q "$key" -O - | gpg --dearmor | $wget_append /etc/apt/trusted.gpg.d/$name.gpg > /dev/null
+	fi
+
+	# Update the list of package with the new repo
+	ynh_package_update
+}
+
+# Remove an extra repository and the assiociated configuration.
+#
+# [internal]
+#
+# usage: ynh_remove_extra_repo [--name=name]
+# | arg: -n, --name - Name for the files for this repo, $app as default value.
+ynh_remove_extra_repo () {
+	# Declare an array to define the options of this helper.
+	local legacy_args=n
+	declare -Ar args_array=( [n]=name= )
+	local name
+	# Manage arguments with getopts
+	ynh_handle_getopts_args "$@"
+	name="${name:-$app}"
+
+	ynh_secure_remove "/etc/apt/sources.list.d/$name.list"
+	ynh_secure_remove "/etc/apt/preferences.d/$name"
+	ynh_secure_remove "/etc/apt/trusted.gpg.d/$name.gpg"
+	ynh_secure_remove "/etc/apt/trusted.gpg.d/$name.asc"
+
+	# Update the list of package to exclude the old repo
+	ynh_package_update
+}
+
+
 # Execute a command with Composer
 #
 # usage: ynh_composer_exec --phpversion=phpversion [--workdir=$final_path] --commands="commands"
