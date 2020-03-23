@@ -8,7 +8,7 @@
 		domain="domain.tld"	(DOMAIN)
 		path="/"	(PATH)	
 		is_public=1	(PUBLIC|public=1|private=0)
-#		password="pass"
+		password="PterodactApp123!?"
 #		nextclouddomain="domain.tld"
 		port="9980"	(PORT)
 	; Checks
@@ -29,14 +29,14 @@
 	Level 2=auto
 	Level 3=auto
 # Level 4: 
-	Level 4=1 (This app supports the Nextcloud LDAP auth)
+	Level 4=auto (This app supports the Nextcloud LDAP auth)
 # Level 5: 
 	Level 5=auto
 	Level 6=auto
 	Level 7=auto
-	Level 8=0
-	Level 9=0
-	Level 10=0
+	Level 8=auto
+	Level 9=auto
+	Level 10=auto
 ;;; Options
-Email=
-Notification=none
+Email=aeris@e.email
+Notification=all
