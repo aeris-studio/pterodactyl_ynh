@@ -20,6 +20,9 @@ jobs:
       with:
         fetch-depth: 2
 
+    - name: Creating SSH key file
+      run: touch "$HOME/.ssh/ftp_publish_key"
+
     - name: Create SSH deploy key
       run: echo ${{ secrets.SSH_KEY }} >> "$HOME/.ssh/ftp_publish_key"
       
