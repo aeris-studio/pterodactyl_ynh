@@ -1,0 +1,32 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+  
+jobs:
+  FTP-Deploy-Action:
+    name: FTP-Deploy-Action
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+      with:
+        fetch-depth: 2
+
+    - name: Create SSH deploy key
+      run: echo ${{ secrets.SSH_KEY }} >> "$HOME/.ssh/ftp_publish_key"
+      
+    - name: FTP-Deploy-Action
+      uses: SamKirkland/FTP-Deploy-Action@3.0.0
+      with:
+        ftp-server: sftp://ci-apps-dev.yunohost.org/data/pterodactyl_ynh
+        ftp-username: aeris
+        ftp-password: "SomeRandomPassword"
+        git-ftp-args: --key "$HOME/.ssh/ftp_publish_key"
